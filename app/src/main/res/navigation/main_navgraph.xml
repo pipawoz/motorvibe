@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_navgraph"
+    app:startDestination="@id/listFragment">
+    <fragment
+        android:id="@+id/editFragment"
+        android:name="com.utn.motorvibe.fragments.editFragment"
+        android:label="Motor Edit"
+        tools:layout="@layout/edit_fragment" />
+    <fragment
+        android:id="@+id/listFragment"
+        android:name="com.utn.motorvibe.fragments.listFragment"
+        android:label="Motor List"
+        tools:layout="@layout/list_fragment" >
+        <action
+            android:id="@+id/action_listFragment_to_editFragment"
+            app:destination="@id/editFragment" />
+        <action
+            android:id="@+id/action_listFragment_to_containerFragment"
+            app:destination="@id/containerFragment" />
+        <action
+            android:id="@+id/action_listFragment_to_settingsActivity"
+            app:destination="@id/settingsActivity" />
+    </fragment>
+    <fragment
+        android:id="@+id/containerFragment"
+        android:name="com.utn.motorvibe.fragments.containerFragment"
+        android:label="Selected Motor"
+        tools:layout="@layout/fragment_container" />
+    <fragment
+        android:id="@+id/detailFragment"
+        android:name="com.utn.motorvibe.fragments.detailFragment"
+        android:label="fragment_detail"
+        tools:layout="@layout/fragment_detail" />
+    <fragment
+        android:id="@+id/plotFragment"
+        android:name="com.utn.motorvibe.fragments.plotFragment"
+        android:label="fragment_plot"
+        tools:layout="@layout/fragment_plot" />
+    <activity
+        android:id="@+id/settingsActivity"
+        android:name="com.utn.motorvibe.activities.SettingsActivity"
+        android:label="activity_settings"
+        tools:layout="@layout/activity_settings" />
+</navigation>

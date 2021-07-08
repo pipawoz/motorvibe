@@ -1,0 +1,41 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/messages_header">
+
+        <EditTextPreference
+            app:key="default_motor_status"
+            app:title="@string/motor_status_title"
+            app:defaultValue="OK"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:defaultValue="grid_mode_list"
+            app:entries="@array/grid_modes"
+            app:entryValues="@array/grid_values"
+            app:key="grid_mode"
+            app:title="@string/grid_mode_title"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/grid_preferences">
+
+        <SwitchPreferenceCompat
+            app:key="display_images_setting"
+            app:title="@string/display_images_title"
+            app:summaryOff="@string/display_images_summary_off"
+            app:summaryOn="@string/display_images_summary_on"
+            app:defaultValue="true"/>
+
+        <!-- <SwitchPreferenceCompat
+            app:dependency="display_images_setting"
+            app:key="small_images"
+            app:summaryOff="@string/small_images_summary_off"
+            app:summaryOn="@string/small_images_summary_on"
+            app:title="@string/small_images_title"
+            app:defaultValue="false"
+            />
+            -->
+    </PreferenceCategory>
+
+</PreferenceScreen>

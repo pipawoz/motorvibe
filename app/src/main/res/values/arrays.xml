@@ -1,0 +1,33 @@
+<resources>
+    <!-- Reply Preference -->
+    <string-array name="grid_modes">
+        <item>List</item>
+        <item>Grid</item>
+    </string-array>
+
+    <string-array name="grid_values">
+        <item>grid_mode_list</item>
+        <item>grid_mode_grid</item>
+    </string-array>
+
+    <string-array name="models_array">
+        <item>W22</item>
+        <item>IEEE 841</item>
+        <item>Cooling Tower</item>
+        <item>Crusher Duty</item>
+        <item>W40</item>
+        <item>Aegis 1</item>
+        <item>JP-Aegis</item>
+    </string-array>
+
+    <array name="images_list">
+        <item>@drawable/motor1</item>
+        <item>@drawable/motor2</item>
+        <item>@drawable/motor3</item>
+        <item>@drawable/motor4</item>
+        <item>@drawable/motor5</item>
+        <item>@drawable/motor6</item>
+        <item>@drawable/motor7</item>
+    </array>
+
+</resources>

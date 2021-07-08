@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "276867192652",
+    "project_id": "motorvibe-31c92",
+    "storage_bucket": "motorvibe-31c92.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:276867192652:android:2f1acaf75a5a84e80e61e9",
+        "android_client_info": {
+          "package_name": "com.utn.motorvibe"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "276867192652-bq3p7oo3j37sn8oualal2ekqa065rp5g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCaayQeCbtv1I1lc38ZApAjFVn5wrMTx5o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "276867192652-bq3p7oo3j37sn8oualal2ekqa065rp5g.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

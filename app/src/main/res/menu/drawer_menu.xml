@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group
+        android:id="@+id/grp_1"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/listFragment"
+            android:icon="@drawable/main_ico"
+            android:title="Motor List"/>
+        <item
+            android:id="@+id/editFragment"
+            android:icon="@drawable/edit_ico"
+            android:title="Motor Edit"/>
+        <item
+            android:id="@+id/settingsActivity"
+            android:icon="@drawable/settings_ico"
+            android:title="Settings"/>
+
+    </group>
+</menu>

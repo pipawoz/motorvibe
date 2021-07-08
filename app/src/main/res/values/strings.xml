@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">MotorVibe</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+
+    <!-- Preferences -->
+    <string name="messages_header">App Settings</string>
+    <string name="grid_preferences">Image Settings</string>
+
+    <string name="motor_status_title">Default Motor Status</string>
+    <string name="grid_mode_title">Grid mode</string>
+
+    <string name="display_images_title">Display images</string>
+    <string name="display_images_summary_off">Turn on to display images</string>
+    <string name="display_images_summary_on">Turn off to hide images</string>
+    <string name="small_images_title">Display small images</string>
+    <string name="small_images_summary_off">Turn on to display small images</string>
+    <string name="small_images_summary_on">Turn off to display normal images</string>
+
+    <string name="attachment_summary_off">Only download attachments when manually requested</string>
+    <string name="title_activity_settings">Settings</string>
+    <!--
+    This string is used for square devices and overridden by hello_world in
+    values-round/strings.xml for round devices.
+    -->
+    <string name="hello_world">Hello Square World!</string>
+    <string name="title_activity_splash">splashActivity</string>
+</resources>
