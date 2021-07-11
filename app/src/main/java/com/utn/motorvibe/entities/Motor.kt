@@ -20,4 +20,7 @@ class Motor (name : String, model : String, status : String){
     @ColumnInfo(name = "status")
     var status : String = status
 
+    constructor() : this("", "", "")
+
+
 }

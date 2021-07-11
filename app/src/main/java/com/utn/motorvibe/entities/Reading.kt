@@ -6,7 +6,6 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "readings")
 class Reading (name : String, reading: Double){
-
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")
     var id : Int = 0

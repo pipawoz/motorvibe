@@ -54,7 +54,6 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
     compileOnly 'com.google.android.wearable:wearable:2.6.0'
-    implementation "com.android.support:percent:22.2.0"
 
     //navigation
     def nav_version = "2.3.5"
@@ -83,5 +82,22 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.android.gms:play-services-auth:19.0.0'
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.3.9"
+
+    // otros
+    implementation 'com.google.firebase:firebase-analytics:19.0.0'
+    implementation 'com.google.firebase:firebase-firestore-ktx:23.0.1'
+
+    // FirebaseUI for Cloud Firestore
+    implementation 'com.firebaseui:firebase-ui-firestore:5.1.0'
+
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+
+    //Bluetooth
+    implementation 'com.akexorcist:bluetoothspp:1.0.0'
+
+    //BT 2
+    implementation "com.polidea.rxandroidble2:rxandroidble:1.12.1"
 
 }

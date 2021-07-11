@@ -1,95 +1,142 @@
 package com.utn.motorvibe.fragments
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
-import androidx.preference.PreferenceManager
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.firebase.ui.firestore.FirestoreRecyclerAdapter
+import com.firebase.ui.firestore.FirestoreRecyclerOptions
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.utn.motorvibe.R
-import com.utn.motorvibe.adapters.MotorListAdapter
-import com.utn.motorvibe.database.appDatabase
-import com.utn.motorvibe.database.motorDao
+import com.utn.motorvibe.adapters.MotorHolder
 import com.utn.motorvibe.entities.Motor
 
 class listFragment : Fragment() {
 
-    lateinit var v : View
-    lateinit var recMotor : RecyclerView  //Recycler view object
-    private lateinit var linearLayoutManager: LinearLayoutManager  //List view
-    private lateinit var gridLayoutManager : GridLayoutManager // Grid view
-    private var db: appDatabase? = null
-    private var motorDao: motorDao? = null
+    lateinit var v: View
+    lateinit var recMotor: RecyclerView
+    private lateinit var linearLayoutManager: LinearLayoutManager
+    private lateinit var adapter: FirestoreRecyclerAdapter<Motor, MotorHolder>
+    private var firestoreListener: ListenerRegistration? = null
 
-    var motors : MutableList<Motor> = ArrayList<Motor>()
-    private lateinit var motorListAdapter: MotorListAdapter
+    private var motorList = mutableListOf<Motor>()
+
 
     companion object {
         fun newInstance() = listFragment()
-        var selected_motor : Int = 0
-        var selected_motor_name : String = ""
+        var selected_motor: Int = 0
+        var selected_motor_name: String = ""
+        lateinit var selected_motor_list : Motor
     }
 
-
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
-        v =  inflater.inflate(R.layout.list_fragment, container, false)
-        recMotor = v.findViewById(R.id.rec_motors)  // Get recycler from view
+        v = inflater.inflate(R.layout.list_fragment, container, false)
+        recMotor = v.findViewById(R.id.rec_motors)
+        recMotor.setHasFixedSize(true)
+        recMotor.layoutManager = LinearLayoutManager(context)
         return v
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        // TODO: Use the ViewModel
-    }
-
-    override fun onStart() {  // When fragment is launched
+    override fun onStart() {
         super.onStart()
+        val db = FirebaseFirestore.getInstance()
 
-        db = appDatabase.getAppDataBase(v.context)
-        motorDao = db?.motorDao()
+        load_motor_list()
 
-        val prefs = PreferenceManager.getDefaultSharedPreferences(requireContext())
-        val grid_mode = prefs.getString("grid_mode", "grid_mode_list").toString()
-        val display_images = prefs.getBoolean("display_images_setting", true)
+        /*
+        firestoreListener = db!!.collection("motors")
+            .addSnapshotListener(EventListener { documentSnapshots, e ->
+                if (e != null) {
+                    Log.e("TAG", "Listen failed!", e)
+                    return@EventListener
+                }
 
-        // Populate DB with some items
-        if(motorDao?.getCount() == 0)
-        {
-            motorDao?.insertMotor(Motor(name = "Motor Tower", model = "Cooling Tower", status = "OK"))
-            motorDao?.insertMotor(Motor(name = "Motor Backup", model = "JP-Aegis", status = "Failure"))
-        }
-        motors = motorDao?.loadAllMotors() as MutableList<Motor>
-        recMotor.setHasFixedSize(true)  // View setting
+                motorList = mutableListOf()
 
-        if(grid_mode == "grid_mode_list")
-        {
-            linearLayoutManager = GridLayoutManager(context, 1, RecyclerView.VERTICAL, false)  //Instance of layout manager
-            recMotor.layoutManager = linearLayoutManager  //Object
-        } else {
-            gridLayoutManager = GridLayoutManager(context, 2, RecyclerView.VERTICAL, false)  //Instance of layout manager
-            recMotor.layoutManager = gridLayoutManager  //Object
-        }
+                if (documentSnapshots != null) {
+                    for (doc in documentSnapshots) {
+                        val fb_motor = doc.toObject(Motor::class.java)
+                        motorList.add(fb_motor)
+                    }
+                }
+                adapter!!.notifyDataSetChanged()
+            })
 
-        motorListAdapter = MotorListAdapter(motors, grid_mode, display_images) { pos ->  //User iteration
-            onItemClick(pos)
-        }
-
-        recMotor.adapter = motorListAdapter  //Send adapter to recycler view
+         */
     }
 
-    private fun onItemClick (position : Int ) : Boolean {
+    private fun onItemClick(position: Int, motor: Motor): Boolean {
         selected_motor = position
-        selected_motor_name = motors[position].name
+        selected_motor_name = motor.name
+        selected_motor_list = motor
         val action = listFragmentDirections.actionListFragmentToContainerFragment()
         v.findNavController().navigate(action)
         return true
+    }
+
+    private fun load_motor_list() {
+        //val prefs = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        //val grid_mode = prefs.getString("grid_mode", "grid_mode_list").toString()
+        //val display_images = prefs.getBoolean("display_images_setting", true)
+
+        val docRef = FirebaseFirestore.getInstance()
+        val query = docRef.collection("motors")
+
+        val options = FirestoreRecyclerOptions.Builder<Motor>()
+            .setQuery(query, Motor::class.java)
+            .build()
+
+        adapter = object : FirestoreRecyclerAdapter<Motor, MotorHolder>(options) {
+            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MotorHolder {
+                val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.item_motor_list, parent, false)
+                return MotorHolder(view)
+            }
+
+            override fun onBindViewHolder(holder: MotorHolder, position: Int, motor: Motor) {
+                var selectedImage: String? = ""
+                var imagesList =
+                    listOf("motor1", "motor2", "motor3", "motor4", "motor5", "motor6", "motor7")
+                var modelList = listOf(
+                    "W22", "IEEE 841", "Cooling Tower", "Crusher Duty",
+                    "W40", "Aegis 1", "JP-Aegis"
+                )
+
+                Log.d("TAG", "DocumentSnapshot data: ${motor.name}")
+
+                holder.setName(motor.name)
+                holder.setModel(motor.model)
+                holder.setStatus("Status: ".plus(motor.status))
+
+
+                selectedImage = imagesList[modelList.indexOf(motor.model)]
+                val id = holder.getImageView().context.resources.getIdentifier(
+                    selectedImage, "drawable", holder.getImageView().context.packageName
+                )
+
+                holder.getImageView().setImageResource(id)
+
+                holder.getCardLayout().setOnClickListener { //For each card, set listener
+                    onItemClick(position, motor)
+                }
+            }
+
+            override fun onDataChanged() {
+                super.onDataChanged()
+            }
+        }
+
+        adapter.startListening()
+        recMotor.adapter = adapter
+        Log.d("TAG", "Configure adapter")
     }
 
 }
