@@ -16,17 +16,17 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-
+import kotlinx.coroutines.tasks.await
 
 class plotFragment : Fragment() {
-    lateinit var v : View
+    lateinit var v: View
 
     private var db = FirebaseFirestore.getInstance()
     private val parentJob = Job()
     private val scope = CoroutineScope(Dispatchers.Default + parentJob)
-    lateinit var plotGraph : GraphView
+    private lateinit var plotGraph: GraphView
 
-    private lateinit var motorReadings : ArrayList<Double>
+    private lateinit var motorReadings: ArrayList<Double>
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -37,33 +37,10 @@ class plotFragment : Fragment() {
         return v
     }
 
-    override fun onStart() {
-        super.onStart()
-
-        scope.launch {
-            motorReadings = getReadings() as ArrayList<Double>
-        }
-    }
-
     override fun onResume() {
         super.onResume()
 
-        scope.launch {
-            motorReadings = getReadings()  as ArrayList<Double>
-        }
-
-        plotGraph.title = selected_motor_name.plus(" Acceleration Readings [mm/s²]")
-
-        val plotData = LineGraphSeries<DataPoint>()
-        val readingsCount = motorReadings.size
-
-        motorReadings?.forEachIndexed{ i, data ->
-            if (data != null) {
-                plotData.appendData(DataPoint(i.toDouble(), data), true, readingsCount)
-            }
-        }
-
-        plotData.isDrawDataPoints = true
+        plotGraph.title = selected_motor_name.plus(resources.getString(R.string.plot_title))
 
         plotGraph.viewport.isXAxisBoundsManual = true
         plotGraph.viewport.isYAxisBoundsManual = true
@@ -71,32 +48,45 @@ class plotFragment : Fragment() {
         plotGraph.gridLabelRenderer.horizontalAxisTitle = " "
         plotGraph.gridLabelRenderer.verticalAxisTitle = " "
         plotGraph.gridLabelRenderer.padding = 15
+        plotGraph.viewport.setMaxY(3.5)
+
+        plotGraph.viewport.isScrollable = false
+        plotGraph.viewport.isScalable = false
+
+
+        scope.launch {
+            motorReadings = getReadings()
+            plotReadings()
+        }
+    }
+
+    private fun plotReadings() {
+        val plotData = LineGraphSeries<DataPoint>()
+        plotData.isDrawDataPoints = true
+
+        val readingsCount = motorReadings.size
+
+        motorReadings?.forEachIndexed { i, data ->
+            plotData.appendData(DataPoint(i.toDouble(), data), true, readingsCount)
+        }
+
         plotGraph.gridLabelRenderer.numHorizontalLabels = readingsCount
         plotGraph.gridLabelRenderer.numVerticalLabels = 10
 
-        plotGraph.viewport.setMaxX((readingsCount+1).toDouble())
-        plotGraph.viewport.setMaxY(5.0)
-
-        plotGraph.viewport.isScrollable = true
-        plotGraph.viewport.isScalable = true
-
+        plotGraph.viewport.setMaxX((readingsCount + 1).toDouble())
         plotGraph.addSeries(plotData)
     }
 
     private suspend fun getReadings(): ArrayList<Double> {
-        db.collection("readings").document(selected_motor_name)
-            .get()
-            .addOnSuccessListener { document ->
-                if (document != null) {
-                    Log.d("TAG", "DocumentSnapshot data: ${document.data}")
-                    var motorReadings: ArrayList<Double> = document.get("readings") as ArrayList<Double>
-                } else {
-                    Log.d("TAG", "No such document")
-                }
-            }
-            .addOnFailureListener { exception ->
-                Log.d("TAG", "get failed with ", exception)
-            }
+        motorReadings = ArrayList<Double>()
+        val query = db.collection("readings").document(selected_motor_name)
+        try {
+            val data = query.get().await()
+            motorReadings = data.get("readings") as ArrayList<Double>
+            Log.d("TAG", "DocumentSnapshot data: ${data.data}")
+        } catch (e: Exception) {
+            Log.d("TAG", "getReadings failed ", e)
+        }
         return motorReadings
     }
 }

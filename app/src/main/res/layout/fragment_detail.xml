@@ -85,9 +85,11 @@
         android:id="@+id/btn_read_bt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
         android:drawableLeft="@android:drawable/stat_sys_data_bluetooth"
         android:text="Read from BT"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:textColor="#FFFFFF"
+        app:layout_constraintEnd_toStartOf="@+id/btnPlot"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btn_add_reading" />
 
@@ -97,5 +99,15 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.75" />
+
+    <Button
+        android:id="@+id/btnPlot"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="PLOT"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/new_reading"
+        app:layout_constraintTop_toBottomOf="@+id/btn_add_reading" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

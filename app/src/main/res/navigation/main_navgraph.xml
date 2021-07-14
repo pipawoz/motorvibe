@@ -18,30 +18,32 @@
             android:id="@+id/action_listFragment_to_editFragment"
             app:destination="@id/editFragment" />
         <action
-            android:id="@+id/action_listFragment_to_containerFragment"
-            app:destination="@id/containerFragment" />
-        <action
             android:id="@+id/action_listFragment_to_settingsActivity"
             app:destination="@id/settingsActivity" />
+        <action
+            android:id="@+id/action_listFragment_to_detailFragment"
+            app:destination="@id/detailFragment" />
     </fragment>
-    <fragment
-        android:id="@+id/containerFragment"
-        android:name="com.utn.motorvibe.fragments.containerFragment"
-        android:label="Selected Motor"
-        tools:layout="@layout/fragment_container" />
     <fragment
         android:id="@+id/detailFragment"
         android:name="com.utn.motorvibe.fragments.detailFragment"
-        android:label="fragment_detail"
-        tools:layout="@layout/fragment_detail" />
+        android:label="Motor Detail"
+        tools:layout="@layout/fragment_detail">
+        <action
+            android:id="@+id/action_detailFragment_to_plotFragment"
+            app:destination="@id/plotFragment" />
+        <action
+            android:id="@+id/action_detailFragment_to_listFragment"
+            app:destination="@id/listFragment" />
+    </fragment>
     <fragment
         android:id="@+id/plotFragment"
         android:name="com.utn.motorvibe.fragments.plotFragment"
-        android:label="fragment_plot"
+        android:label="Readings Plot"
         tools:layout="@layout/fragment_plot" />
     <activity
         android:id="@+id/settingsActivity"
         android:name="com.utn.motorvibe.activities.SettingsActivity"
-        android:label="activity_settings"
+        android:label="Settings"
         tools:layout="@layout/activity_settings" />
 </navigation>

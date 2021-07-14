@@ -26,4 +26,21 @@
     -->
     <string name="hello_world">Hello Square World!</string>
     <string name="title_activity_splash">splashActivity</string>
+
+    <string name="login_error_authentication">There was a problem with user authentication</string>
+    <string name="login_error_invalid_syntax">Email/Password invalid syntax</string>
+    <string name="login_error_passwords">Passwords do not match</string>
+    <string name="login_user_registered">User Registered</string>
+
+    <string name="reading_invalid">Reading invalid syntax</string>
+    <string name="bt_disconnected_device">Disconnected device</string>
+    <string name="bt_connection_failed">Failed to connect to device</string>
+
+    <string name="edt_motor_added">Motor Added</string>
+    <string name="edt_invalid_syntax">Input Invalid Syntax</string>
+    <string name="edt_motor_deleted">Motor Deleted</string>
+    <string name="edt_motor_not_exists">Motor doesnt exists. Please select another name</string>
+    <string name="edt_motor_exists">Motor already exists. Please select another name</string>
+
+    <string name="plot_title">Acceleration Readings [mm/s²]e</string>
 </resources>

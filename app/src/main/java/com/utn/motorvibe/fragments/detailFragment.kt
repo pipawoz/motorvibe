@@ -14,35 +14,20 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.navigation.findNavController
 import app.akexorcist.bluetotohspp.library.BluetoothSPP
 import app.akexorcist.bluetotohspp.library.BluetoothState
 import app.akexorcist.bluetotohspp.library.DeviceList
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.firestore.FirebaseFirestore
-import com.polidea.rxandroidble2.RxBleClient
 import com.utn.motorvibe.R
-import com.utn.motorvibe.database.motorDao
-import com.utn.motorvibe.database.readingsDao
-import com.utn.motorvibe.entities.Motor
-import com.utn.motorvibe.entities.Reading
 import com.utn.motorvibe.fragments.listFragment.Companion.selected_motor_list
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 
 
 class detailFragment : Fragment() {
     lateinit var v: View
 
     private var db = FirebaseFirestore.getInstance()
-    private val parentJob = Job()
-    private val scope = CoroutineScope(Dispatchers.Default + parentJob)
-
-    private var motorDao: motorDao? = null
-    var motors: MutableList<Motor> = arrayListOf()
-
-    private var readingsDao: readingsDao? = null
-    var readings: MutableList<Reading> = ArrayList<Reading>()
 
     private lateinit var detailName: TextView
     private lateinit var detailModel: TextView
@@ -53,13 +38,10 @@ class detailFragment : Fragment() {
     lateinit var btnAddReading: Button
     lateinit var btnBTReading: Button
     lateinit var edtReading: EditText
+    lateinit var btnPlot: Button
 
-
-    //Bluetooth no anda
     lateinit var bt: BluetoothSPP
-
-    //Otro BT
-    lateinit var rxBleClient: RxBleClient
+    private var isBtConnected = false
 
     private var imagesList =
         listOf("motor1", "motor2s", "motor3", "motor4", "motor5", "motor6", "motor7")
@@ -79,28 +61,44 @@ class detailFragment : Fragment() {
         edtReading = v.findViewById(R.id.new_reading)
         btnAddReading = v.findViewById(R.id.btn_add_reading)
         btnBTReading = v.findViewById(R.id.btn_read_bt)
+        btnPlot = v.findViewById(R.id.btnPlot)
 
         detailImage = v.findViewById(R.id.detail_image)
 
         return v
     }
 
-    override fun onStart() {
-        super.onStart()
+    override fun onStop() {
+        super.onStop()
+        bt.stopService()
+        bt.disconnect()
+    }
+
+    override fun onResume() {
+        super.onResume()
 
         bt = BluetoothSPP(requireContext())
 
         bt.setOnDataReceivedListener { data, message ->
-            Snackbar.make(v, "Reading invalid syntax ${message} ${data}", Snackbar.LENGTH_LONG)
-                .show()
+            Log.d("TAG", "Reading received from BT: ${message}")
+            edtReading.setText(message)
         }
-        //rxBleClient = RxBleClient.create(requireContext())
 
         // Update text view
         detailName.text = selected_motor_list.name
         detailModel.text = "Model: ".plus(selected_motor_list.model)
         detailDescription.text = selected_motor_list.status
         selectedImage = imagesList[modelList.indexOf(selected_motor_list.model)]
+
+        /*
+        //Load form storage
+        val storageRef = FirebaseStorage.getInstance().reference
+        val pathReference = storageRef.child(selectedImage)
+        Glide.with(requireContext())
+            .load(storageRef)
+            .into(detailImage)
+
+         */
 
         // Update image
         val id = requireContext().resources.getIdentifier(
@@ -117,20 +115,28 @@ class detailFragment : Fragment() {
             detailDescription.setTextColor(resources.getColor(R.color.green))
         }
 
-        // Enable bluetooth
-        if (!bt.isBluetoothEnabled) {
-            val intent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            startActivityForResult(intent, BluetoothState.REQUEST_ENABLE_BT)
+        if (!bt.isBluetoothAvailable) {
+            btnBTReading.isEnabled = false
+            btnBTReading.isClickable = false
         } else {
-            bt.setupService()
-            bt.startService(BluetoothState.DEVICE_OTHER)
+            if (!bt.isBluetoothEnabled) {
+                val intent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+                startActivityForResult(intent, BluetoothState.REQUEST_ENABLE_BT)
+            } else {
+                bt.setupService()
+                bt.startService(BluetoothState.DEVICE_OTHER)
+            }
         }
 
+        btnPlot.setOnClickListener {
+            val action = detailFragmentDirections.actionDetailFragmentToPlotFragment()
+            v.findNavController().navigate(action)
+        }
 
         // add new readings
         btnAddReading.setOnClickListener {
             if (edtReading.text.isEmpty()) {
-                Snackbar.make(v, "Reading invalid syntax", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(v, resources.getString(R.string.reading_invalid), Snackbar.LENGTH_LONG).show()
             } else {
                 val inputReading: Double = edtReading.text.toString().toDouble()
 
@@ -140,22 +146,24 @@ class detailFragment : Fragment() {
                             it.get("readings") as ArrayList<Double>
                         readingsList.add(inputReading)  // Agrego nueva medicion
 
-                        db.collection("readings").document(selected_motor_list.name).set(
-                            hashMapOf(
-                                "name" to it.get("name"),
-                                "readings" to readingsList
+                        db.collection("readings").document(selected_motor_list.name)
+                            .set(
+                                hashMapOf(
+                                    "name" to it.get("name"),
+                                    "readings" to readingsList
+                                )
                             )
-                        )
                     }.addOnFailureListener {
                         // Si no habia mediciones en firebase creo nuevo registro
                         var readingsList = arrayListOf(inputReading)
                         readingsList.add(inputReading)
-                        db.collection("readings").document(selected_motor_list.name).set(
-                            hashMapOf(
-                                "name" to selected_motor_list.name,
-                                "readings" to readingsList
+                        db.collection("readings").document(selected_motor_list.name)
+                            .set(
+                                hashMapOf(
+                                    "name" to selected_motor_list.name,
+                                    "readings" to readingsList
+                                )
                             )
-                        )
                     }
                 edtReading.text.clear()
             }
@@ -164,6 +172,7 @@ class detailFragment : Fragment() {
         // read from bt
         btnBTReading.setOnClickListener {
             if (bt.serviceState == BluetoothState.STATE_CONNECTED) {
+                bt.stopService()
                 bt.disconnect()
             } else {
                 val intent = Intent(requireContext(), DeviceList::class.java)
@@ -174,15 +183,16 @@ class detailFragment : Fragment() {
         bt.setBluetoothConnectionListener(object : BluetoothSPP.BluetoothConnectionListener {
             override fun onDeviceConnected(name: String, address: String) {
                 Log.d("TAG", "Connected: ${address}")
+                Snackbar.make(v, "Connected: ${address}", Snackbar.LENGTH_SHORT).show()
             }
 
             override fun onDeviceDisconnected() {
-                Log.d("TAG", "Disconnected device")
+                Log.d("TAG", resources.getString(R.string.bt_disconnected_device))
+                edtReading.text.clear()
             }
 
             override fun onDeviceConnectionFailed() {
-                Log.d("TAG", "Connection failed")
-
+                Log.d("TAG", resources.getString(R.string.bt_connection_failed))
             }
         })
     }
@@ -194,13 +204,12 @@ class detailFragment : Fragment() {
                 bt.setupService()
                 bt.startService(BluetoothState.DEVICE_OTHER)
                 bt.connect(data)
+                isBtConnected = true
             }
         } else if (requestCode == BluetoothState.REQUEST_ENABLE_BT) {
             if (resultCode == Activity.RESULT_OK) {
                 bt.setupService()
                 bt.startService(BluetoothState.DEVICE_OTHER)
-            } else {
-                // Do something if user doesn't choose any device (Pressed back)
             }
         }
     }

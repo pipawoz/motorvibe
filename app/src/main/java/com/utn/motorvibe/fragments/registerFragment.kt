@@ -10,21 +10,21 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
 import com.utn.motorvibe.R
-import com.utn.motorvibe.entities.User
 
 class registerFragment : Fragment() {
-    private val db_fb = FirebaseFirestore.getInstance()
+    private val db = FirebaseFirestore.getInstance()
+    private lateinit var auth: FirebaseAuth
 
-    lateinit var v: View
+    private lateinit var v: View
 
-    lateinit var usernameInput: EditText
-    lateinit var passwordInput: EditText
-    lateinit var verifyPasswordInput: EditText
-    lateinit var emailInput: EditText
-
-    lateinit var signupButton: Button
+    private lateinit var passwordInput: EditText
+    private lateinit var verifyPasswordInput: EditText
+    private lateinit var emailInput: EditText
+    private lateinit var signupButton: Button
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -33,7 +33,6 @@ class registerFragment : Fragment() {
     ): View? {
         v = layoutInflater.inflate(R.layout.fragment_register, container, false)
 
-        usernameInput = v.findViewById(R.id.txt_register_email)
         passwordInput = v.findViewById(R.id.txt_password)
         signupButton = v.findViewById(R.id.btn_register)
         verifyPasswordInput = v.findViewById(R.id.txt_verify_password)
@@ -44,6 +43,7 @@ class registerFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
+        val auth = Firebase.auth
 
         // For debug
         emailInput.setText("adminuser@gmail.com")
@@ -51,32 +51,45 @@ class registerFragment : Fragment() {
         verifyPasswordInput.setText("adminuser")
 
         signupButton.setOnClickListener {
-            if ((emailInput.text.toString().isEmpty()) or (passwordInput.text.toString()
-                    .isEmpty())
-            ) {
-                Snackbar.make(v, "Email/Password invalid syntax", Snackbar.LENGTH_LONG).show()
+            val email = emailInput.text.toString()
+            val password = passwordInput.text.toString()
+            val verifyPassword = verifyPasswordInput.text.toString()
+
+            if ((email.isEmpty()) or (password.isEmpty())) {
+                Snackbar.make(
+                    v,
+                    resources.getString(R.string.login_error_invalid_syntax),
+                    Snackbar.LENGTH_LONG
+                ).show()
             } else {
-                if (passwordInput.text.toString() != verifyPasswordInput.text.toString()) {
-                    Snackbar.make(v, "Passwords do not match", Snackbar.LENGTH_LONG).show()
+                if (password != verifyPassword) {
+                    Snackbar.make(
+                        v,
+                        resources.getString(R.string.login_error_passwords),
+                        Snackbar.LENGTH_LONG
+                    ).show()
                 } else {
-                    FirebaseAuth.getInstance().createUserWithEmailAndPassword(
-                        emailInput.text.toString(),
-                        passwordInput.text.toString()
+                    auth.createUserWithEmailAndPassword(
+                        email, password
                     ).addOnCompleteListener {
                         if (it.isSuccessful) {
-                            Snackbar.make(v, "User registered", Snackbar.LENGTH_LONG).show()
+                            Snackbar.make(
+                                v,
+                                resources.getString(R.string.login_user_registered),
+                                Snackbar.LENGTH_LONG
+                            ).show()
 
                             val action =
                                 registerFragmentDirections.actionRegisterFragment2ToLoginFragment2()
 
-                            // Firestore
-                            db_fb.collection("Users").document(emailInput.text.toString()).set(
-                                hashMapOf(
-                                    "email" to emailInput.text.toString(),
-                                    "password" to passwordInput.text.toString()
+                            // Create a user db in firestore also
+                            db.collection("Users").document(email)
+                                .set(
+                                    hashMapOf(
+                                        "email" to email,
+                                        "password" to password
+                                    )
                                 )
-                            )
-
                             v.findNavController().navigate(action)
                         } else {
                             Snackbar.make(

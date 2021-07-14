@@ -21,11 +21,6 @@ class editFragment : Fragment() {
 
     private val db = FirebaseFirestore.getInstance()
 
-    // private var motorDao: motorDao? = null
-    //var motors: MutableList<Motor> = ArrayList<Motor>()
-    //lateinit var motorList: MutableList<Motor>
-    //lateinit var tempMotor: Motor
-
     private lateinit var edtName: EditText
     private lateinit var edtStatus: EditText
     private lateinit var edtModel: EditText
@@ -34,7 +29,7 @@ class editFragment : Fragment() {
     private lateinit var btnDelete: Button
     private lateinit var btnEdit: Button
 
-    lateinit var default_motor_status: String
+    lateinit var defaultMotorStatus: String
 
     var i: Int = 0
 
@@ -71,68 +66,102 @@ class editFragment : Fragment() {
 
         edtName.text.clear()
 
-        // add
         btnAdd.setOnClickListener {
-            if (edtName.text.isNotEmpty() and (edtModel.text.toString() != "model")) {
-                if (motorExists(edtName.text.toString())) {
+            val inputName = edtName.text.toString()
+            val inputModel = edtModel.text.toString()
+            val inputStatus = edtStatus.text.toString()
+
+            if (inputName.isNotEmpty() and (inputModel != "model")) {
+                if (motorExists(inputName)) {
                     Snackbar.make(
                         v,
-                        "Motor name already exists. Please select another name",
+                        resources.getString(R.string.edt_motor_exists),
                         Snackbar.LENGTH_LONG
                     ).show()
                 } else {
-                    default_motor_status = if (edtStatus.text.isEmpty()) {
+                    defaultMotorStatus = if (inputStatus.isEmpty()) {
                         prefs.getString("default_motor_status", "OK").toString()
-
                     } else {
-                        edtStatus.text.toString()
+                        inputStatus
                     }
-                    db.collection("motors").document(edtName.text.toString()).set(
+
+                    // Add Motor to collection
+                    db.collection("motors").document(inputName).set(
                         hashMapOf(
-                            "name" to edtName.text.toString(),
-                            "model" to edtModel.text.toString(),
-                            "status" to default_motor_status.toString()
+                            "name" to inputName,
+                            "model" to inputModel,
+                            "status" to defaultMotorStatus
                         )
                     )
-                    Snackbar.make(v, "Motor added", Snackbar.LENGTH_LONG).show()
+
+                    // Create a empty readings collection for that Motor
+                    db.collection("readings").document(inputName).set(
+                        hashMapOf(
+                            "name" to inputName,
+                            "readings" to arrayListOf(0.0)
+                        )
+                    )
+                    Snackbar.make(
+                        v,
+                        resources.getString(R.string.edt_motor_added),
+                        Snackbar.LENGTH_LONG
+                    ).show()
                     clearFields()
                 }
             } else {
-                Snackbar.make(v, "Input invalid syntax", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(
+                    v,
+                    resources.getString(R.string.edt_invalid_syntax),
+                    Snackbar.LENGTH_LONG
+                ).show()
             }
         }
 
         btnDelete.setOnClickListener {
-            if (edtName.text.isNotEmpty()) {
-                if (motorExists(edtName.text.toString())) {
-                    db.collection("motors").document(edtName.text.toString()).delete()
-                    Snackbar.make(v, "Motor deleted", Snackbar.LENGTH_LONG).show()
+            val inputName = edtName.text.toString()
+
+            if (inputName.isNotEmpty()) {
+                if (motorExists(inputName)) {
+                    db.collection("motors").document(inputName).delete()
+                    Snackbar.make(
+                        v,
+                        resources.getString(R.string.edt_motor_deleted),
+                        Snackbar.LENGTH_LONG
+                    ).show()
                     clearFields()
                 } else {
                     Snackbar.make(
                         v,
-                        "Motor name does not exist. Please select another name",
+                        resources.getString(R.string.edt_motor_not_exists),
                         Snackbar.LENGTH_LONG
                     ).show()
                 }
             } else {
-                Snackbar.make(v, "Name invalid syntax", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(
+                    v,
+                    resources.getString(R.string.edt_invalid_syntax),
+                    Snackbar.LENGTH_LONG
+                ).show()
             }
         }
 
         btnEdit.setOnClickListener {
-            if (edtName.text.isNotEmpty() and (edtModel.text.isNotEmpty())) {
-                if (motorExists(edtName.text.toString())) {
-                    default_motor_status = if (edtStatus.text.isEmpty()) {
+            val inputName = edtName.text.toString()
+            val inputModel = edtModel.text.toString()
+            val inputStatus = edtStatus.text.toString()
+
+            if (inputName.isNotEmpty() and (inputModel.isNotEmpty())) {
+                if (motorExists(inputName)) {
+                    defaultMotorStatus = if (inputStatus.isEmpty()) {
                         prefs.getString("default_motor_status", "OK").toString()
                     } else {
-                        edtStatus.text.toString()
+                        inputStatus
                     }
-                    db.collection("motors").document(edtName.text.toString()).set(
+                    db.collection("motors").document(inputName).set(
                         hashMapOf(
-                            "name" to edtName.text.toString(),
-                            "model" to edtModel.text.toString(),
-                            "status" to default_motor_status.toString()
+                            "name" to inputName,
+                            "model" to inputModel,
+                            "status" to defaultMotorStatus
                         )
                     )
                     Snackbar.make(v, "Motor edited", Snackbar.LENGTH_LONG).show()
@@ -140,12 +169,16 @@ class editFragment : Fragment() {
                 } else {
                     Snackbar.make(
                         v,
-                        "Motor name does not exist. Please select another name",
+                        resources.getString(R.string.edt_motor_not_exists),
                         Snackbar.LENGTH_LONG
                     ).show()
                 }
             } else {
-                Snackbar.make(v, "Input invalid syntax", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(
+                    v,
+                    resources.getString(R.string.edt_invalid_syntax),
+                    Snackbar.LENGTH_LONG
+                ).show()
             }
         }
     }
@@ -156,14 +189,17 @@ class editFragment : Fragment() {
 
     private fun motorExists(motor_name: String): Boolean {
         val docRef = db.collection("motors").document(motor_name)
-        var motor_exist = false
+        var motorExist = false
         try {
-            docRef.get()
-            motor_exist = true
-        } catch(e: Exception) {
+            docRef.get().addOnSuccessListener {
+                motorExist = true
+            }.addOnFailureListener {
+                motorExist = false
+            }
+        } catch (e: Exception) {
             //do nothing
         }
-        return motor_exist
+        return motorExist
     }
 
     private fun clearFields() {
